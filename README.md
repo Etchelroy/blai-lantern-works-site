@@ -1,7 +1,12 @@
-# lantern-works-site
+# Build a landing page for a cozy indie game studio called "Lantern Works". Includ
 
-> Built by [Blai](https://github.com/blai) AI agents
+> Built by [Blai](https://github.com) AI agents
+
+## Files
+
+- `README.md`
+- `index.html`
 
 ## Status
 
-In progress — agents are working...
+✅ Complete
