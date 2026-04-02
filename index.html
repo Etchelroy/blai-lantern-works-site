@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lantern Works — Indie Game Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber: #D4820A;
+    --amber-light: #F0A830;
+    --amber-dark: #A85E00;
+    --tan: #C8A96E;
+    --tan-light: #E8D5A8;
+    --tan-pale: #F5ECD7;
+    --brown-deep: #2C1A0E;
+    --brown-mid: #4A2E18;
+    --brown-warm: #6B3F20;
+    --green-muted: #4A5C3A;
+    --green-light: #7A8C5A;
+    --cream: #FAF3E0;
+    --shadow: rgba(44,26,14,0.45);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--brown-deep);
+    color: var(--tan-light);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── PIXEL BORDER UTILITY ── */
+  .pixel-border {
+    border: 4px solid var(--amber);
+    box-shadow:
+      4px 4px 0 var(--amber-dark),
+      inset 0 0 0 2px var(--amber-dark);
+    image-rendering: pixelated;
+  }
+
+  .pixel-border-brown {
+    border: 4px solid var(--brown-warm);
+    box-shadow:
+      4px 4px 0 var(--brown-deep),
+      inset 0 0 0 2px rgba(0,0,0,0.3);
+  }
+
+  /* ── PIXEL BUTTON ── */
+  .btn-pixel {
+    display: inline-block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 14px 22px;
+    background: var(--amber);
+    color: var(--brown-deep);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    box-shadow: 4px 4px 0 var(--amber-dark);
+    transition: transform 0.08s, box-shadow 0.08s;
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px),
+      0 calc(100% - 4px)
+    );
+  }
+  .btn-pixel:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--amber-dark);
+    background: var(--amber-light);
+  }
+  .btn-pixel:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--amber-dark);
+  }
+  .btn-pixel.btn-secondary {
+    background: var(--brown-warm);
+    color: var(--tan-light);
+    box-shadow: 4px 4px 0 var(--brown-deep);
+  }
+  .btn-pixel.btn-secondary:hover {
+    background: var(--green-muted);
+    box-shadow: 6px 6px 0 var(--brown-deep);
+  }
+
+  /* ── SECTION WRAPPER ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 2.5vw, 22px);
+    color: var(--amber-light);
+    text-align: center;
+    margin-bottom: 12px;
+    text-shadow: 3px 3px 0 var(--brown-deep);
+  }
+  .section-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--tan);
+    text-align: center;
+    margin-bottom: 48px;
+    letter-spacing: 1px;
+  }
+
+  /* ═══════════════════════════════
+     NAVBAR
+  ═══════════════════════════════ */
+  #navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--brown-mid);
+    border-bottom: 4px solid var(--amber-dark);
+    z-index: 1000;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--amber-light);
+    text-decoration: none;
+    text-shadow: 2px 2px 0 var(--brown-deep);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-logo .lantern-icon {
+    font-size: 20px;
+    filter: drop-shadow(0 0 6px var(--amber));
+    animation: flicker 3s infinite;
+  }
+  @keyframes flicker {
+    0%,100%{opacity:1} 48%{opacity:1} 50%{opacity:0.7} 52%{opacity:1} 78%{opacity:1} 80%{opacity:0.85} 82%{opacity:1}
+  }
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--tan-light);
+    text-decoration: none;
+    transition: color 0.2s;
+    text-shadow: 1px 1px 0 var(--brown-deep);
+  }
+  .nav-links a:hover { color: var(--amber-light); }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+  .hamburger span {
+    display: block;
+    width: 26px;
+    height: 3px;
+    background: var(--amber-light);
+    transition: all 0.25s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 56px; left: 0; right: 0;
+    background: var(--brown-mid);
+    border-bottom: 4px solid var(--amber-dark);
+    padding: 20px 24px;
+    z-index: 999;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--tan-light);
+    text-decoration: none;
+    padding: 10px 0;
+    border-bottom: 2px solid var(--brown-warm);
+  }
+  .mobile-menu a:hover { color: var(--amber-light); }
+
+  /* ═══════════════════════════════
+     HERO
+  ═══════════════════════════════ */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding-top: 56px;
+    background: var(--brown-deep);
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 60%, rgba(212,130,10,0.18) 0%, transparent 70%),
+      linear-gradient(180deg, #1a0e06 0%, #2C1A0E 40%, #1e1208 100%);
+  }
+
+  /* Pixel star field */
+  .stars {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    background: var(--tan-light);
+    image-rendering: pixelated;
+    animation: twinkle var(--dur, 2s) infinite var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:0.9} 50%{opacity:0.2}
+  }
+
+  /* Pixel campfire */
+  .campfire-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+  }
+  .campfire-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 24px var(--amber)) drop-shadow(0 0 48px rgba(212,130,10,0.4));
+    animation: fireGlow 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes fireGlow {
+    from { filter: drop-shadow(0 0 20px var(--amber)) drop-shadow(0 0 40px rgba(212,130,10,0.35)); }
+    to   { filter: drop-shadow(0 0 34px var(--amber-light)) drop-shadow(0 0 60px rgba(240,168,48,0.55)); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 16px 140px;
+  }
+  .hero-eyebrow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--amber);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0.85;
+  }
+  .hero-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(22px, 5vw, 52px);
+    color: var(--amber-light);
+    text-shadow:
+      4px 4px 0 var(--amber-dark),
+      8px 8px 0 rgba(44,26,14,0.6),
+      0 0 40px rgba(240,168,48,0.3);
+    margin-bottom: 20px;
+    line-height: 1.35;
+  }
+  .hero-tagline {
+    font-family: 'VT323', monospace;
+    font-size: clamp(22px, 3vw, 32px);
+    color: var(--tan-light);
+    margin-bottom: 44px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    letter-spacing: 1.5px;
+  }
+  .hero-cta-group {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Pixel ground decoration */
+  .pixel-ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--green-muted) 0px, var(--green-muted) 8px,
+      var(--green-light) 8px, var(--green-light) 16px
+    );
+    clip-path: polygon(
+      0 40%, 3% 30%, 6% 40%, 9% 25%, 12% 38%,
+      15% 30%, 18% 42%, 22% 28%, 26% 40%,
+      30% 32%, 34% 45%, 38% 30%, 42% 42%,
+      46% 28%, 50% 38%, 54% 25%, 58% 40%,
+      62% 30%, 66% 42%, 70% 28%, 74% 40%,
+      78% 30%, 82% 38%, 86% 25%, 90% 40%,
+      94% 30%, 97% 42%, 100% 35%, 100% 100%, 0 100%
+    );
+    opacity: 0.6;
+  }
+
+  /* ═══════════════════════════════
+     GAMES SECTION
+  ═══════════════════════════════ */
+  #games {
+    padding: 90px 0;
+    background:
+      linear-gradient(180deg, #1a0e06 0%, #241408 100%);
+    position: relative;
+  }
+  #games::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, var(--amber) 0 8px, var(--amber-dark) 8px 16px);
+  }
+  #games::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, var(--amber) 0 8px, var(--amber-dark) 8px 16px);
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+  }
+
+  .game-card {
+    background: var(--brown-mid);
+    border: 4px solid var(--amber-dark);
+    box-shadow: 6px 6px 0 var(--brown-deep);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    clip-path: polygon(
+      0 8px, 8px 8px, 8px 0,
+      calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px,
+      100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px),
+      calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px),
+      0 calc(100% - 8px)
+    );
+  }
+  .game-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 10px 10px 0 var(--brown-deep);
+  }
+
+  .game-card-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    image-rendering: auto;
+    filter: saturate(0.7) sepia(0.3) brightness(0.85);
+    border-bottom: 4px solid var(--amber-dark);
+  }
+
+  .game-card-body {
+    padding: 20px 20px 24px;
+  }
+
+  .game-genre {
+    display: inline-block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    background: var(--green-muted);
+    color: var(--tan-light);
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    box-shadow: 2px 2px 0 var(--brown-deep);
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px),
+      0 calc(100% - 4px)
+    );
+  }
+
+  .game-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--amber-light);
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 0 var(--brown-deep);
+    line-height: 1.5;
+  }
+
+  .game-desc {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--tan);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════
+     ABOUT SECTION
+  ═══════════════════════════════ */
+  #about {
+    padding: 90px 0;
+    background: linear-gradient(180deg, #241408 0%, #2C1A0E 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .about-visual {
+    position: relative;
+  }
+
+  .about-img-frame {
+    border: 4px solid var(--amber);
+    box-shadow:
+      8px 8px 0 var(--amber-dark),
+      16px 16px 0 rgba(44,26,14,0.5);
+    overflow: hidden;
+    clip-path: polygon(
+      0 8px, 8px 8px, 8px 0,
+      calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px,
+      100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px),
+      calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px),
+      0 calc(100% - 8px)
+    );
+  }
+
+  .about-img {
+    width: 100%;
+    height: 340px;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.5) sepia(0.5) brightness(0.75);
+  }
+
+  /* Pixel art decoration overlay on image */
+  .about-img-frame::after {
+    content: '🏕️';
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    font-size: 36px;
+    filter: drop-shadow(0 0 8px var(--amber));
+  }
+
+  .about-pixel-badge {
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    background: var(--amber);
+    color: var(--brown-deep);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 10px 14px;
+    box-shadow: 4px 4px 0 var(--amber-dark);
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px),
+      0 calc(100% - 4px)
+    );
+    z-index: 2;
+    line-height: 1.6;
+  }
+
+  .about-text h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(13px, 2vw, 18px);
+    color: var(--amber-light);
+    margin-bottom: 24px;
+    text-shadow: 2px 2px 0 var(--brown-deep);
+    line-height: 1.5;
+  }
+
+  .about-text p {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--tan-light);
+    margin-bottom: 18px;
+    line-height: 1.7;
+  }
+
+  .about-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .value-chip {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 8px 12px;
+    border: 3px solid;
+    box-shadow: 3px 3px 0 var(--brown-deep);
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px),
+      0 calc(100% - 4px)
+    );
+  }
+  .value-chip:nth-child(1) { border-color: var(--amber); color: var(--amber-light); }
+  .value-chip:nth-child(2) { border-color: var(--green-muted); color: var(--green-light); }
+  .value-chip:nth-child(3) { border-color: var(--tan); color: var(--tan-light); }
+  .value-chip:nth-child(4) { border-color: var(--amber-dark); color: var(--amber); }
+
+  /* ═══════════════════════════════
+     CONTACT SECTION
+  ═══════════════════════════════ */
+  #contact {
+    padding: 90px 0;
+    background: linear-gradient(180deg, #2C1A0E 0%, #1a0e06 100%);
+    position: relative;
+  }
+  #contact::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, var(--amber) 0 8px, var(--amber-dark) 8px 16px);
+  }
+
+  .contact-form-wrap {
+    max-width: 620px;
+    margin: 0 auto;
+    background: var(--brown-mid);
+    border: 4px solid var(--amber-dark);
+    box-shadow: 8px 8px 0 var(--brown-deep);
+    padding: 40px 44px;
+    clip-path: polygon(
+      0 8px, 8px 8px, 8px 0,
+      calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px,
+      100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px),
+      calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px),
+      0 calc(100% - 8px)
+    );
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--amber);
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0 var(--brown-deep);
+  }
+
+  .form-input, .form-textarea {
+    width: 100%;
+    background: var(--brown-deep);
+    border: 3px solid var(--brown-warm);
+    color: var(--tan-light);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px),
+      0 calc(100% - 4px)
+    );
+  }
+  .form-input:focus, .form-textarea:focus {
+    border-color: var(--amber);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 0 0 2px rgba(212,130,10,0.3);
+  }
+  .form-input::placeholder, .form-textarea::placeholder {
+    color: var(--brown-warm);
+    opacity: 0.8;
+  }
+  .form-textarea { resize: vertical; min-height: 130px; }
+
+  .form-error {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #E05C3A;
+    margin-top: 6px;
+    display: none;
+  }
+  .form-error.visible { display: block; }
+
+  .form-input.invalid, .form-textarea.invalid {
+    border-color: #E05C3A;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 0 0 2px rgba(224,92,58,0.3);
+  }
+
+  .form-success {
+    text-align: center;
+    padding: 30px 0 10px;
+    display: none;
+  }
+  .form-success.visible { display: block; }
+  .form-success p {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--amber-light);
+    line-height: 2;
+    text-shadow: 2px 2px 0 var(--brown-deep);
+  }
+  .form-success .success-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+    animation: bounce 0.6s infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+  }
+
+  /* ═══════════════════════════════
+     FOOTER
+  ═══════════════════════════════ */
+  footer {
+    background: var(--brown-deep);
+    border-top: 4px solid var(--amber-dark);
+    padding: 32px 24px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--brown-warm);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  footer p span { color: var(--amber); }
+  .footer-pixel-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .footer-dot {
+    width: 8px; height: 8px;
+    background: var(--amber-dark);
+    box-shadow: 0 0 0 2px var(--brown-mid);
+  }
+  .footer-dot:nth-child(3) { background: var(--amber); }
+
+  /* ═══════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════ */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    .about-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .about-img { height: 220px; }
+    .about-visual { order: -1; }
+
+    .contact-form-wrap { padding: 28px 22px; }
+
+    .hero-title { font-size: clamp(18px, 7vw, 30px); }
+    .campfire-wrap { width: 80px; height: 80px; }
+  }
+
+  @media (max-width: 480px) {
+    .games-grid { grid-template-columns: 1fr; }
+    .hero-tagline { font-size: 20px; }
+  }
+
+  /* ═══════════════════════════════
+     PIXEL DECORATIONS
+  ═══════════════════════════════ */
+  .pixel-divider {
+    width: 100%;
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--amber-dark) 0 8px,
+      transparent 8px 16px
+    );
+    margin: 0;
+  }
+
+  .section-icon {
+    display: block;
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 8px var(--amber));
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <span class="lantern-icon">🏮</span>
+      LANTERN WORKS
+    </a>
+    <ul class="nav-links">
+      <li><a href="#games">GAMES</a></li>
+      <li><a href="#about">ABOUT</a></li>
+      <li><a href="#contact">CONTACT</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#games" onclick="closeMobileMenu()">⚔ GAMES</a>
+  <a href="#about" onclick="closeMobileMenu()">📜 ABOUT</a>
+  <a href="#contact" onclick="closeMobileMenu()">✉ CONTACT</a>
+</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="stars" id="stars"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ EST. 2021 ✦</p>
+    <h1 class="hero-title">LANTERN<br>WORKS</h1>
+    <p class="hero-tagline">Handcrafted games for weary adventurers.<br>Gather 'round — the fire is warm.</p>
+    <div class="hero-cta-group">
+      <a href="#games" class="btn-pixel">⚔ See Our Games</a>
+      <a href="#about" class="btn-pixel btn-secondary">📖 Our Story</a>
+    </div>
+  </div>
+
+  <div class="campfire-wrap">
+    <img src="https://picsum.photos/seed/campfire-cozy/120/120" alt="Campfire" class="campfire-img">
+  </div>
+  <div class="pixel-ground"></div>
+</section>
+
+<!-- ── GAMES ── -->
+<section id="games">
+  <div class="container">
+    <span class="section-icon">🎮</span>
+    <h2 class="section-title">FEATURED GAMES</h2>
+    <p class="section-subtitle">Tales forged in firelight — pick your adventure.</p>
+
+    <div class="games-grid">
+
+      <!-- Card 1 -->
+      <div class="game-card">
+        <img src="https://picsum.photos/seed/ember-vale-forest/600/360" alt="Ember Vale" class="game-card-img">
+        <div class="game-card-body">
+          <span class="game-genre">🌲 RPG · ADVENTURE</span>
+          <h3 class="game-title">EMBER VALE</h3>
+          <p class="game-desc">A solitary ranger uncovers ancient secrets buried beneath the ashen woods. Explore hand-painted biomes, befriend spirits, and rekindle a dying world.</p>
+          <a href="#" class="btn-pixel">Learn More →</a>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="game-card">
+        <img src="https://picsum.photos/seed/hearthstone-village-cozy/600/360" alt="Thornwick Inn" class="game-card-img">
+        <div class="game-card-body">
+          <span class="game-genre">🏠 SIM · COZY</span>
+          <h3 class="game-title">THORNWICK INN</h3>
+          <p class="game-desc">Inherit a crumbling roadside inn on the edge of an enchanted moor. Cook hearty meals, host peculiar guests, and slowly restore the old place to its former glory.</p>
+          <a href="#" class="btn-pixel">Learn More →</a>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="game-card">
+        <img src="https://picsum.photos/seed/dungeon-lantern-pixel/600/360" alt="Hollow Keep" class="game-card-img">
+        <div class="game-card-body">
+          <span class="game-genre">⚔ ROGUELITE · ACTION</span>
+          <h3 class="game-title">HOLLOW KEEP</h3>
+          <p class="game-desc">Descend into the procedurally-generated depths of a forgotten fortress. Every torch you light pushes back the dark — but monsters fear the light too.</p>
+          <a href="#" class="btn-pixel">Learn More →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="container">
+    <div class="about-inner">
+
+      <div class="about-visual">
+        <div class="about-pixel-badge">INDIE<br>STUDIO</div>
+        <div class="about-img-frame">
+          <img src="https://picsum.photos/seed/cozy-cabin-forest-warm/700/500" alt="Lantern Works Studio" class="about-img">
+        </div>
+      </div>
+
+      <div class="about-text">
+        <h2>SMALL TEAM.<br>BIG CAMPFIRES.</h2>
+        <p>Lantern Works is a two-person indie studio nestled somewhere between a forest and a deadline. We make games the way you'd tell a campfire story — slowly, warmly, and with just the right amount of mystery.</p>
+        <p>Founded in 2021 by a wandering programmer and a pixel-obsessed artist, we believe games should feel like coming home after a long journey. No frenetic scoreboards, no grinding loops — just worlds worth getting lost in.</p>
+        <p>Every sprite is hand-drawn, every sound recorded in our gloriously drafty studio. We ship when things feel right, not when a publisher says so.</p>
+        <div class="about-values">
+          <span class="value-chip">✦ HANDCRAFTED</span>
+          <span class="value-chip">🌿 COZY FIRST</span>
+          <span class="value-chip">🕯 ATMOSPHERIC</span>
+          <span class="value-chip">⚒ INDIE SPIRIT</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="container">
+    <span class="section-icon">✉️</span>
+    <h2 class="section-title">SEND A LETTER</h2>
+    <p class="section-subtitle">Got a question, collab idea, or just want to say hi? The fire's always on.</p>
+
+    <div class="contact-form-wrap">
+      <form id="contactForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="name">▸ YOUR NAME</label>
+          <input type="text" id="name" class="form-input" placeholder="Adventurer McQuest" autocomplete="name">
+          <span class="form-error" id="nameError">⚠ Name is required.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">▸ EMAIL ADDRESS</label>
+          <input type="email" id="email" class="form-input" placeholder="you@campfire.net" autocomplete="email">
+          <span class="form-error" id="emailError">⚠ Please enter a valid email.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="message">▸ MESSAGE</label>
+          <textarea id="message" class="form-textarea" placeholder="Your tale goes here..."></textarea>
+          <span class="form-error" id="msgError">⚠ Message must be at least 10 characters.</span>
+        </div>
+
+        <button type="submit" class="btn-pixel" style="width:100%;text-align:center;display:block;">
+          🏮 SEND MESSAGE
+        </button>
+
+        <div class="form-success" id="formSuccess">
+          <span class="success-icon">🏮</span>
+          <p>MESSAGE RECEIVED!</p>
+          <p style="font-size:9px;color:var(--tan);margin-top:8px;">We'll write back by candlelight.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2024 <span>LANTERN WORKS</span> · ALL RIGHTS RESERVED</p>
+  <p>CRAFTED WITH <span>♥</span> AND CAMPFIRE SMOKE</p>
+  <div class="footer-pixel-row">
+    <div class="footer-dot"></div>
+    <div class="footer-dot"></div>
+    <div class="footer-dot"></div>
+    <div class="footer-dot"></div>
+    <div class="footer-dot"></div>
+  </div>
+</footer>
+
+<script>
+  /* ── STAR FIELD ── */
+  (function generateStars() {
+    const container = document.getElementById('stars');
+    const count = 80;
+    for (let i = 0; i < count; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+      const size = Math.random() < 0.7 ? 2 : (Math.random() < 0.5 ? 3 : 4);
+      star.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        top: ${Math.random() * 75}%;
+        left: ${Math.random() * 100}%;
+        --dur: ${(1.5 + Math.random() * 3).toFixed(2)}s;
+        --delay: ${(Math.random() * 4).toFixed(2)}s;
+        opacity: ${(0.4 + Math.random() * 0.6).toFixed(2)};
+      `;
+      container.appendChild(star);
+    }
+  })();
+
+  /* ── HAMBURGER / MOBILE MENU ── */
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+  });
+
+  function closeMobileMenu() {
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+  }
+
+  /* ── NAVBAR SCROLL SHADOW ── */
+  window.addEventListener('scroll', () => {
+    const navbar = document.getElementById('navbar');
+    navbar.style.boxShadow = window.scrollY > 10
+      ? '0 4px 20px rgba(44,26,14,0.7)'
+      : '0 4px 12px rgba(44,26,14,0.45)';
+  });
+
+  /* ── CONTACT FORM VALIDATION ── */
+  const form = document.getElementById('contactForm');
+
+  function setFieldState(input, errorEl, valid) {
+    if (valid) {
+      input.classList.remove('invalid');
+      errorEl.classList.remove('visible');
+    } else {
+      input.classList.add('invalid');
+      errorEl.classList.add('visible');
+    }
+    return valid;
+  }
+
+  function validateName() {
+    const val = document.getElementById('name').value.trim();
+    return setFieldState(
+      document.getElementById('name'),
+      document.getElementById('nameError'),
+      val.length > 0
+    );
+  }
+
+  function validateEmail() {
+    const val = document.getElementById('email').value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    return setFieldState(
+      document.getElementById('email'),
+      document.getElementById('emailError'),
+      ok
+    );
+  }
+
+  function validateMessage() {
+    const val = document.getElementById('message').value.trim();
+    return setFieldState(
+      document.getElementById('message'),
+      document.getElementById('msgError'),
+      val.length >= 10
+    );
+  }
+
+  /* Live validation */
+  document.getElementById('name').addEventListener('blur', validateName);
+  document.getElementById('email').addEventListener('blur', validateEmail);
+  document.getElementById('message').addEventListener('blur', validateMessage);
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const n = validateName();
+    const em = validateEmail();
+    const m = validateMessage();
+    if (n && em && m) {
+      form.querySelectorAll('.form-group').forEach(g => g.style.display = 'none');
+      form.querySelector('[type="submit"]').style.display = 'none';
+      document.getElementById('formSuccess').classList.add('visible');
+    }
+  });
+
+  /* ── SMOOTH SCROLL for anchor clicks ── */
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const offset = 56;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
